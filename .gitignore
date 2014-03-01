@@ -1,0 +1,7 @@
+*.pyc
+.*
+!.gitignore
+*.swo
+*.swp
+public/build
+public/node_modules
