@@ -67,6 +67,12 @@ letterHandler = (keycode)->
     $("#dest-tiles").append(tile)
     console.log('tile:\t', tile.text())
 
+#########################
+## Check word validity ##
+#########################
+
+checkWord = (word, wordList)->
+
 ###################
 ## Prepare round ##
 ###################
@@ -84,8 +90,32 @@ newRack = ()->
     addTileToRack('r')
     addTileToRack('l')
 
+addAnswers = (wordlist)->
+    answers = {}
+    for word in wordlist
+        l = word.length
+        if not answers[l] then answers[l] = []
+        answers[l].push(word)
+    lenarr = []
+    for len, list of answers
+        list.sort()
+        lenarr.push(len)
+    lenarr.sort()
+    answersTable = $("#answers-table tr")
+    console.log(lenarr, answers, answersTable)
+    for len in lenarr
+        newdiv = $("<td></td>")
+        console.log(newdiv)
+        for word in answers[len]
+            newdiv.append($("<p data-guessed='false' data-word='#{word}' data-length='#{len}'>#{word}</p>"))
+        answersTable.append(newdiv)
+        
+
 startRound = ()->
     newRack()
+    wordlist = ['ear', 'earn', 'learn', 'eel', 'lee', 'ran', 'reel', 'leer',
+        'err', 'rare', 'near', 'nearer', 'lane', 'lean', 'leaner', 'relearn']
+    addAnswers(wordlist)
 
 $(document).ready ()->
 
