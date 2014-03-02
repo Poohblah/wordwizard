@@ -44,7 +44,7 @@ module.exports = (grunt)->
 				tasks: [ 'less' ]
 			html:
 				files: ['<%= files.src %>/html/**/*.html']
-				tasks: [ 'newer:html' ]
+				tasks: [ 'newer:copy' ]
 
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-less'

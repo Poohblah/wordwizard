@@ -30,22 +30,30 @@ getWord = ()->
 shuffleSourceTiles = ()->
     $("#source-tiles").randomize('div')
 
-enterHandler = ()->
-    word = getWord()
-    $("#word").text(word)
+delTile = ()->
+    # move tile from destination to source
+    tile = $("#dest-tiles > .tile:last")
+    tile.remove()
+    $("#source-tiles").append(tile)
 
-shuffleHandler = ()->
-    shuffleSourceTiles()
+clearAllTiles = ()->
+    $("#dest-tiles > .tile").each ()->
+        delTile()
 
 ####################
 ## Event handlers ##
 ####################
 
+enterHandler = ()->
+    word = getWord()
+    $("#word").text(word)
+    clearAllTiles()
+
+shuffleHandler = ()->
+    shuffleSourceTiles()
+
 backspaceHandler = ()->
-    # move tile from destination to source
-    tile = $("#dest-tiles > .tile:last")
-    tile.remove()
-    $("#source-tiles").append(tile)
+    delTile()
 
 letterHandler = (keycode)->
     char = 'abcdefghijklmnopqrstuvwxyz'.charAt(keycode - 65)
@@ -59,25 +67,53 @@ letterHandler = (keycode)->
     $("#dest-tiles").append(tile)
     console.log('tile:\t', tile.text())
 
-#############################
-## Register event handlers ##
-#############################
+###################
+## Prepare round ##
+###################
 
-$(document).keydown (event)->
-    event.preventDefault()
-    console.log('keycode\t', event.keyCode)
+addTileToRack = (char)->
+    newtile = $("<div data-char='#{char}' class=\"tile\">#{getCharText(char)}</div>")
+    $("#source-tiles").append(newtile)
 
-    # 8 -> backspace
-    if event.keyCode == 8
-        backspaceHandler()
+newRack = ()->
+    addTileToRack('n')
+    addTileToRack('e')
+    addTileToRack('a')
+    addTileToRack('r')
+    addTileToRack('e')
+    addTileToRack('r')
+    addTileToRack('l')
 
-    # 13 -> enter
-    else if event.keyCode == 13
-        enterHandler()
+startRound = ()->
+    newRack()
 
-    # 32 -> space
-    else if event.keyCode == 32
-        spaceHandler()
+$(document).ready ()->
+
+    #############################
+    ## Register event handlers ##
+    #############################
     
-    else if 65 <= event.keyCode && event.keyCode <= 90
-        letterHandler(event.keyCode)
+    $(document).keydown (event)->
+        event.preventDefault()
+        console.log('keycode\t', event.keyCode)
+    
+        # 8 -> backspace
+        if event.keyCode == 8
+            backspaceHandler()
+    
+        # 13 -> enter
+        else if event.keyCode == 13
+            enterHandler()
+    
+        # 32 -> space
+        else if event.keyCode == 32
+            shuffleHandler()
+        
+        else if 65 <= event.keyCode && event.keyCode <= 90
+            letterHandler(event.keyCode)
+    
+    ###############
+    ## START! :D ##
+    ###############
+
+    startRound()
