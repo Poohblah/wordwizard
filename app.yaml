@@ -1,0 +1,18 @@
+application: word-wizard
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /js
+  static_dir: public/build/js
+- url: /css
+  static_dir: public/build/css
+- url: /html
+  static_dir: public/build/html
+- url: /api/.*
+  script: wordwizard.application
+- url: /.*
+  static_files: public/build/html/index.html
+  upload: public/build/html/.*
