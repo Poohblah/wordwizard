@@ -6,17 +6,32 @@ import os
 
 import scripts
 
-class GetRound(webapp2.RequestHandler):
-
+class GetTileBag(webapp2.RequestHandler):
     def get(self):
-        # responseobj = {
-        #     'status': 'fail',
-        #     'payload': {
-        #         'tiles': ['a', 'e', 'e', 'l', 'n', 'r', 'r'],
-        #         'words': ['ear', 'earn', 'learn', 'eel', 'earl', 'lee', 'ran', 'reel', 'leer', 'err', 'rare', 'near', 'nearer', 'lane', 'lean', 'leaner', 'relearn']
-        #         }
-        #     }
+        tilebag = scripts.getrack.gettilebag()
+        responseobj = { 
+            'status': 'ok',
+            'payload': {
+                'tilebag': tilebag
+                }
+            }
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(json.dumps(responseobj))
 
+class GetDict(webapp2.RequestHandler):
+    def get(self):
+        dictobj = scripts.getrack.getdict()
+        responseobj = { 
+            'status': 'ok',
+            'payload': {
+                'dict': dictobj
+                }
+            }
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(json.dumps(responseobj))
+
+class GetRound(webapp2.RequestHandler):
+    def get(self):
         rack = scripts.getrack.getrack()
         responseobj = { 
             'status': 'ok',
@@ -29,7 +44,9 @@ class GetRound(webapp2.RequestHandler):
         self.response.write(json.dumps(responseobj))
 
 routes = [
-    ('/api/getRound', GetRound)
+    ('/api/getRound', GetRound),
+    ('/api/getTileBag', GetTileBag),
+    ('/api/getDict', GetDict)
 ]
 
 application = webapp2.WSGIApplication(routes, debug=True)

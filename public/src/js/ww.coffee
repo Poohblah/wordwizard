@@ -14,6 +14,30 @@ $.fn.randomize = (selector)->
 
     return this
 
+shuffle  = (arr) ->
+    i = arr.length
+    if i is 0 then return false
+
+    while --i
+        j = Math.floor(Math.random() * (i+1))
+        [arr[i], arr[j]] = [arr[j], arr[i]]
+
+isValidAnswer = (racktiles, anstiles)->
+    rl = racktiles.length
+    al = anstiles.length
+    if al > rl then return false
+    ri = 0
+    ai = 0
+    while 1
+        if ai == al then return true
+        if ri == rl then return false
+        if anstiles[ai] ==  racktiles[ri]
+            ri++; ai++
+        else if anstiles[ai] > racktiles[ri]
+            ri++
+        else
+            return false
+
 ##########################
 ## Game-related classes ##
 ##########################
@@ -24,8 +48,8 @@ $.fn.randomize = (selector)->
 
 class TileRack
 
-    constructor: (tiles)->
-        for tile in tiles
+    constructor: (@tiles)->
+        for tile in @tiles
             @addTileToRack(tile)
 
     addTileToRack: (char)->
@@ -72,7 +96,7 @@ class TileRack
 class Answer
     constructor: (@word)->
         @length = @word.length
-        @element = $("<p class=\"unmarked\" data-word='#{@word}' data-length='#{@len}'>#{Array(@length + 1).join("-")}</p>")
+        @element = $("<p class=\"unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("-")}</p>")
 
     findElement: ()->
         return $("#answers-table td[data-word='#{@word}']")
@@ -116,9 +140,54 @@ class AnswerTable
 class Round
 
     constructor: ()->
+        @config =
+            locale: 'en'
+            tileset: 'superscrabble'
+            dictionary: 'sowpods'
+            tileRackLength: 8
+            minAnswerLength: 3
+            maxAnswerLength: 8
+            minMaxAnswerLength: 7
+        @startRound()
 
-        ## Register event handlers ##
-        
+    startRound: ()->
+        @getDict()
+        .then ()=>
+            @getTileBag()
+        .then ()=>
+            @getValidRack()
+            @ansTable = new AnswerTable(@wordlist)
+            @bindKeys()
+
+    getDict: ()->
+        $.get('/api/getDict').then (res)=>
+            @dict = res.payload.dict
+
+    getTileBag: ()->
+        $.get('/api/getTileBag') .then (res)=>
+            @tilebag = res.payload.tilebag
+
+    getValidRack: ()->
+        @wordlist = []
+        tilerack = []
+        valid = false
+        while not valid
+            shuffle(@tilebag)
+            tilerack = @tilebag.splice(0,8).sort()
+            @wordlist = []
+            for ll, al of @dict
+                len = ll.length
+                if len >= @config.minAnswerLength and
+                len <= @config.maxAnswerLength and
+                isValidAnswer(tilerack, ll)
+                    @wordlist = @wordlist.concat(al)
+                    if len >= @config.minMaxAnswerLength then valid = true
+        @rack = new TileRack(tilerack)
+
+    endRoud: ()->
+        # release keypress bindings
+
+    bindKeys: ()->
         $(document).keydown (event)=>
             # console.log('keycode\t', event.keyCode)
             switch
@@ -137,18 +206,6 @@ class Round
                 when 65 <= event.keyCode && event.keyCode <= 90
                     event.preventDefault()
                     @letterHandler(event.keyCode)
-
-        @startRound()
-
-    startRound: ()->
-        $.get('/api/getRound').then (res)=>
-            # next line isn't working for some reason
-            # if res.status is not 'ok' then throw "Error with getRound"
-            @rack = new TileRack(res.payload.tiles)
-            @ansTable = new AnswerTable(res.payload.words)
-
-    endRoud: ()->
-        # release keypress bindings
 
     ## Event handlers ##
     

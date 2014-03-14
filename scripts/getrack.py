@@ -63,3 +63,9 @@ def getrack():
         maxlen = len(max(wordlist, key=lambda x: len(x)))
         
     return Rack(rack, wordlist)
+
+def getdict():
+    return dictobj
+
+def gettilebag():
+    return tilebag
