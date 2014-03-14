@@ -44,8 +44,7 @@ class Rack():
 def getrack():
     maxlen = 0
     rack = []
-    wordlist = []
-    while maxlen < 8:
+    while maxlen < 7:
         random.shuffle(tilebag)
         rack = tilebag[0:8]
         
@@ -55,15 +54,12 @@ def getrack():
                 ls = ''.join(s)
                 if ls in lettersets: continue
                 wl = dictobj.get(ls)
-                # if wl: wordlist += wl
                 if wl: lettersets[ls] = wl
         
+        wordlist = []
         for ls, wl in lettersets.items():
             wordlist += wl
     
         maxlen = len(max(wordlist, key=lambda x: len(x)))
         
-    # print rack
-    # print wordlist
-    # print "max:", maxlen
     return Rack(rack, wordlist)
