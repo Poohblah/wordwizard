@@ -124,7 +124,7 @@ class AnswerTable
         lenarr = []
         for len, list of lengths
             list.sort (a, b)->
-                return a.word > b.word
+                if a.word > b.word then return 1 else return -1
             lenarr.push(len)
         lenarr.sort()
         @answersTableElem = $("#answers-table tr")
