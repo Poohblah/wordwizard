@@ -96,7 +96,7 @@ class TileRack
 class Answer
     constructor: (@word)->
         @length = @word.length
-        @element = $("<div class=\"answer unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("<span class=\"tile\">&nbsp;</span>")}</div>")
+        @element = $("<div class=\"answer unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("<span class=\"tile\"></span>")}</div>")
 
     findElement: ()->
         return $("#answers-table td[data-word='#{@word}']")
@@ -105,7 +105,7 @@ class Answer
         @element.removeClass("unmarked")
         @element.addClass("marked")
         for tile, i in @element.find('.tile')
-            $(tile).text(@word[i].toUpperCase())
+            $(tile).text(@word[i])
 
 class AnswerTable
 

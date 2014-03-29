@@ -11,8 +11,9 @@
         text-align: center;
         line-height: 1.5em;
         margin: .125em;
-        font-size: 40px;
+        font-size: 24px;
         font-family: Arial, sans-serif;
+        text-transform: uppercase;
     }
 
     #source-tiles {
@@ -25,6 +26,15 @@
         }
     }
 
+    #ghost-tile {
+        width: 0;
+        visibility: hidden;
+        > .tile {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
+
     #answers-table {
         .answer-col {
             vertical-align: top;
@@ -34,7 +44,9 @@
             background-color: lightgreen;
         }
         .tile {
-            font-size: 14px;
+            font-size: 8px;
+            border-width: 1px; 
+            border-radius: 1px;
         }
     }
 }
