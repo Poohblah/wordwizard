@@ -97,15 +97,18 @@ class Answer
     constructor: (@word)->
         @length = @word.length
         @element = $("<div class=\"answer unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("<span class=\"tile\"></span>")}</div>")
+        @marked = false
 
     findElement: ()->
         return $("#answers-table td[data-word='#{@word}']")
 
     markAnswered: ()->
+        if @marked then return false
         @element.removeClass("unmarked")
         @element.addClass("marked")
         for tile, i in @element.find('.tile')
             $(tile).text(@word[i])
+        @marked = true
 
 class AnswerTable
 
@@ -132,7 +135,10 @@ class AnswerTable
                 @answersTableElem.append(newdiv)
 
     guessWord: (word)->
-        if @answers[word]? then @answers[word].markAnswered()
+        if @answers[word]?
+            if @answers[word].markAnswered() then return "correct"
+            else return "guessed"
+        else return "wrong"
 
 ####################
 ## Game and Round ##
@@ -212,8 +218,11 @@ class Round
     
     enterHandler: ()->
         word = @rack.getWord()
-        $("#word").text(word)
-        @ansTable.guessWord(word)
+        status = @ansTable.guessWord(word)
+        switch status
+            when "wrong" then $("#status").text(word + " is not a valid word.")
+            when "correct" then $("#status").text(word + " is correct!")
+            when "guessed" then $("#status").text(word + " has already been guessed.")
         @rack.clearAllTiles()
     
     shuffleHandler: ()->
