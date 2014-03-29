@@ -53,7 +53,7 @@ class TileRack
             @addTileToRack(tile)
 
     addTileToRack: (char)->
-        newtile = $("<div data-char='#{char}' class=\"tile\">#{@getCharText(char)}</div>")
+        newtile = $("<span data-char='#{char}' class=\"tile\">#{@getCharText(char)}</span>")
         $("#source-tiles").append(newtile)
 
     getCharText: (char)->
@@ -68,7 +68,7 @@ class TileRack
         .get().join("")
     
     shuffleSourceTiles: ()->
-        $("#source-tiles").randomize('div')
+        $("#source-tiles").randomize('.tile')
     
     typeTile: (char)->
         # move tile from source to destination
@@ -96,7 +96,7 @@ class TileRack
 class Answer
     constructor: (@word)->
         @length = @word.length
-        @element = $("<p class=\"unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("-")}</p>")
+        @element = $("<div class=\"answer unmarked\" data-word='#{@word}' data-length='#{@length}'>#{Array(@length + 1).join("<span class=\"tile\">&nbsp;</span>")}</div>")
 
     findElement: ()->
         return $("#answers-table td[data-word='#{@word}']")
@@ -104,7 +104,8 @@ class Answer
     markAnswered: ()->
         @element.removeClass("unmarked")
         @element.addClass("marked")
-        @element.text(@word)
+        for tile, i in @element.find('.tile')
+            $(tile).text(@word[i].toUpperCase())
 
 class AnswerTable
 
@@ -125,7 +126,7 @@ class AnswerTable
         lenarr.sort()
         @answersTableElem = $("#answers-table tr")
         for len in lenarr
-            newdiv = $("<td></td>")
+            newdiv = $("<td class=\"answer-col\"></td>")
             for word in lengths[len]
                 newdiv.append(word.element)
                 @answersTableElem.append(newdiv)
@@ -184,7 +185,7 @@ class Round
                     if len >= @config.minMaxAnswerLength then valid = true
         @rack = new TileRack(tilerack)
 
-    endRoud: ()->
+    endRound: ()->
         # release keypress bindings
 
     bindKeys: ()->

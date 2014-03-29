@@ -9,7 +9,7 @@ import time
 min_tiles = 4
 max_tiles = 8
 
-dictfn    = 'resources/en/dictionaries/sowpods.txt'
+dictfn    = 'resources/en/dictionaries/twl06.txt'
 tilesetfn = 'resources/en/tilesets/superscrabble.txt'
 
 # open files

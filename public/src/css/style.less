@@ -1,22 +1,40 @@
 #game {
+
+    .tile {
+        display: inline-block;
+        border: 2px solid brown;
+        border-radius: 2px;
+        background-color: ivory;
+        color: brown;
+        width: 1.5em;
+        height: 1.5em;
+        text-align: center;
+        line-height: 1.5em;
+        margin: .125em;
+        font-size: 40px;
+        font-family: Arial, sans-serif;
+    }
+
     #source-tiles {
 	> .tile {
-            background-color: green
         }
     }
     
     #dest-tiles {
 	> .tile {
-            background-color: red
         }
     }
 
     #answers-table {
-        td {
-            vertical-align: top
+        .answer-col {
+            vertical-align: top;
+            padding-right: 1.5em;
         }
         .marked {
-            background-color: yellow
+            background-color: lightgreen;
+        }
+        .tile {
+            font-size: 14px;
         }
     }
 }
