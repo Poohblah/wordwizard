@@ -3,5 +3,4 @@
 * wordnik / dictionary integration
 * server- vs. client-side logic
 * timer
-* new game
 * multiplayer

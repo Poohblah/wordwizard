@@ -50,16 +50,14 @@ class TileRack
 
     constructor: (@tiles)->
 
-    cleanup: ()->
-        @unloadRack()
-        $("#source-tiles").html('')
-
-    loadRack: ()->
+    load: ()->
+        @cleanup()
         for tile in @tiles
             @addTileToRack(tile)
 
-    unloadRack: ()->
+    cleanup: ()->
         @clearAllTiles()
+        $("#source-tiles").html('')
 
     addTileToRack: (char)->
         newtile = $("<span data-char='#{char}' class=\"tile\">#{@getCharText(char)}</span>")
@@ -124,22 +122,25 @@ class AnswerTable
     constructor: (wordlist)->
         @answers = {}
 
-        lengths = {}
+        @lengths = {}
         for word in wordlist
             ans = new Answer(word)
             @answers[word] = ans
-            if not lengths[ans.length] then lengths[ans.length] = []
-            lengths[ans.length].push(ans)
-        lenarr = []
-        for len, list of lengths
+            if not @lengths[ans.length] then @lengths[ans.length] = []
+            @lengths[ans.length].push(ans)
+        @lenarr = []
+        for len, list of @lengths
             list.sort (a, b)->
                 if a.word > b.word then return 1 else return -1
-            lenarr.push(len)
-        lenarr.sort()
+            @lenarr.push(len)
+        @lenarr.sort()
         @answersTableElem = $("#answers-table tr")
-        for len in lenarr
+
+    load: ()->
+        @cleanup()
+        for len in @lenarr
             newdiv = $("<td class=\"answer-col\"></td>")
-            for word in lengths[len]
+            for word in @lengths[len]
                 newdiv.append(word.element)
                 @answersTableElem.append(newdiv)
 
@@ -170,10 +171,10 @@ class Round
             minAnswerLength: 3
             maxAnswerLength: 7
             minMaxAnswerLength: 7
-        @startRound()
+        @prepareRound()
 
     prepareRound: ()->
-        @getDict()
+        @ready = @getDict()
         .then ()=>
             @getTileBag()
         .then ()=>
@@ -181,9 +182,16 @@ class Round
             @ansTable = new AnswerTable(@wordlist)
 
     startRound: ()->
-        @prepareRound().then ()=>
-            @rack.loadRack()
+        @ready.then ()=>
+            @rack.load()
+            @ansTable.load()
             @bindEvents()
+
+    stopRound: ()->
+        @unbindEvents()
+        @ansTable.revealAll()
+        @rack.clearAllTiles()
+        @status('round over.')
 
     getDict: ()->
         $.get('/api/getDict').then (res)=>
@@ -211,12 +219,10 @@ class Round
         @rack = new TileRack(tilerack)
 
     endRound: ()->
-        # release keypress bindings
         @unbindEvents()
-        # clean up tile rack, answers, status
         @rack.cleanup()
         @ansTable.cleanup()
-        $("#status").text("")
+        @status("")
 
     bindEvents: ()->
         $(document).keydown (event)=>
@@ -240,16 +246,19 @@ class Round
     unbindEvents: ()->
         $(document).unbind("keydown")
 
+    status: (status)->
+        $("#status").text(status)
+
     ## Event handlers ##
     
     enterHandler: ()->
         word = @rack.getWord()
+        @rack.clearAllTiles()
         status = @ansTable.guessWord(word)
         switch status
-            when "wrong" then $("#status").text(word + " is not a valid word.")
-            when "correct" then $("#status").text(word + " is correct!")
-            when "guessed" then $("#status").text(word + " has already been guessed.")
-        @rack.clearAllTiles()
+            when "wrong" then @status(word + " is not a valid word.")
+            when "correct" then @status(word + " is correct!")
+            when "guessed" then @status(word + " has already been guessed.")
     
     shuffleHandler: ()->
         @rack.shuffleSourceTiles()
@@ -270,10 +279,15 @@ class Game
         if @round
             @round.endRound()
             delete @round
-        @round = new Round()
+        if @nextRound
+            @round = @nextRound
+        else
+            @round = new Round()
+        @round.startRound()
+        @nextRound = new Round()
 
     stopRound: ()->
-        @round.ansTable.revealAll()
+        @round.stopRound()
 
     bindEvents: ()->
         $("[data-value='newround']").click ()=>
