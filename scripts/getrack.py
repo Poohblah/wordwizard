@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # script to import dictionary and tileset
 
 import random
@@ -6,10 +7,11 @@ import time
 # import ../models
 
 # globals
-min_tiles = 4
+min_tiles = 3
 max_tiles = 8
+min_max_tiles = 7
 
-dictfn    = 'resources/en/dictionaries/twl06.txt'
+dictfn    = 'resources/en/dictionaries/sowpods.txt'
 tilesetfn = 'resources/en/tilesets/superscrabble.txt'
 
 # open files
@@ -69,3 +71,65 @@ def getdict():
 
 def gettilebag():
     return tilebag
+
+class Tilemap():
+    def __init__(self):
+        self.letters = {}
+        self.wordlist = []
+
+    def add(self, tileset, wordlist):
+        if not tileset:
+            self.wordlist = wordlist
+            return
+        letter = tileset[0]
+        ntm = self.letters.get(letter)
+        if not ntm:
+            ntm = self.letters[letter] = Tilemap()
+        ntm.add(tileset[1:], wordlist)
+
+    def construct(self, tilemapping):
+        for tileset, wordlist in tilemapping.items():
+            self.add(tileset, wordlist)
+
+    def find_words(self, tileset, min_len=0):
+        wl = []
+        for i in range(0, len(tileset) - min_len):
+            ntm = self.letters.get(tileset[i])
+            if ntm: wl += self.wordlist + ntm.find_words(tileset[i+1:], min_len=min_len)
+            else: wl += self.wordlist
+        return wl
+
+    def get_wordlist(self, tileset):
+        if not tileset: return self.wordlist
+        ntm = self.letters.get(tileset[0])
+        if not ntm: return None
+        return ntm.get_wordlist(tileset[1:])
+
+tm = Tilemap()
+tm.construct(dictobj)
+
+def getrack2():
+    st = time.clock()
+    maxlen = 0
+    rack = []
+    wordlist = []
+    i = 0
+    while maxlen < min_max_tiles:
+        i += 1
+        random.shuffle(tilebag)
+        rack = ''.join(sorted(tilebag[0:max_tiles]))
+        wordlist = tm.find_words(rack)
+        if wordlist: maxlen = len(max(wordlist, key=lambda x: len(x)))
+
+    et = time.clock()
+    tt = et - st
+    print "total time to make rack:", tt
+    print "tileracks tested:", i
+    return Rack(rack, wordlist)
+    
+if __name__ == '__main__':
+    print "tilemapping created. creating tilerack..."
+    for i in range(100):
+        rack = getrack2()
+        print rack.tiles
+        print rack.wordlist
