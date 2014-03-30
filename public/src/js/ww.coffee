@@ -49,8 +49,17 @@ isValidAnswer = (racktiles, anstiles)->
 class TileRack
 
     constructor: (@tiles)->
+
+    cleanup: ()->
+        @unloadRack()
+        $("#source-tiles").html('')
+
+    loadRack: ()->
         for tile in @tiles
             @addTileToRack(tile)
+
+    unloadRack: ()->
+        @clearAllTiles()
 
     addTileToRack: (char)->
         newtile = $("<span data-char='#{char}' class=\"tile\">#{@getCharText(char)}</span>")
@@ -77,7 +86,6 @@ class TileRack
             return
         tile.remove()
         $("#dest-tiles").append(tile)
-        console.log('tile:\t', tile.text())
     
     delTile: ()->
         # move tile from destination to source
@@ -102,10 +110,11 @@ class Answer
     findElement: ()->
         return $("#answers-table td[data-word='#{@word}']")
 
-    markAnswered: ()->
+    markAnswered: (reveal=false)->
         if @marked then return false
         @element.removeClass("unmarked")
-        @element.addClass("marked")
+        if reveal then @element.addClass("revealed")
+        else @element.addClass("marked")
         for tile, i in @element.find('.tile')
             $(tile).text(@word[i])
         @marked = true
@@ -134,11 +143,17 @@ class AnswerTable
                 newdiv.append(word.element)
                 @answersTableElem.append(newdiv)
 
+    cleanup: ()->
+        @answersTableElem.html('')
+
     guessWord: (word)->
         if @answers[word]?
             if @answers[word].markAnswered() then return "correct"
             else return "guessed"
         else return "wrong"
+
+    revealAll: ()->
+        ans.markAnswered(reveal=true) for word, ans of @answers
 
 ####################
 ## Game and Round ##
@@ -151,20 +166,24 @@ class Round
             locale: 'en'
             tileset: 'superscrabble'
             dictionary: 'sowpods'
-            tileRackLength: 8
+            tileRackLength: 7
             minAnswerLength: 3
-            maxAnswerLength: 8
+            maxAnswerLength: 7
             minMaxAnswerLength: 7
         @startRound()
 
-    startRound: ()->
+    prepareRound: ()->
         @getDict()
         .then ()=>
             @getTileBag()
         .then ()=>
             @getValidRack()
             @ansTable = new AnswerTable(@wordlist)
-            @bindKeys()
+
+    startRound: ()->
+        @prepareRound().then ()=>
+            @rack.loadRack()
+            @bindEvents()
 
     getDict: ()->
         $.get('/api/getDict').then (res)=>
@@ -180,7 +199,7 @@ class Round
         valid = false
         while not valid
             shuffle(@tilebag)
-            tilerack = @tilebag.splice(0,8).sort()
+            tilerack = @tilebag.splice(0,@config.tileRackLength).sort()
             @wordlist = []
             for ll, al of @dict
                 len = ll.length
@@ -193,10 +212,14 @@ class Round
 
     endRound: ()->
         # release keypress bindings
+        @unbindEvents()
+        # clean up tile rack, answers, status
+        @rack.cleanup()
+        @ansTable.cleanup()
+        $("#status").text("")
 
-    bindKeys: ()->
+    bindEvents: ()->
         $(document).keydown (event)=>
-            # console.log('keycode\t', event.keyCode)
             switch
                 # 8 -> backspace
                 when event.keyCode == 8
@@ -213,6 +236,9 @@ class Round
                 when 65 <= event.keyCode && event.keyCode <= 90
                     event.preventDefault()
                     @letterHandler(event.keyCode)
+
+    unbindEvents: ()->
+        $(document).unbind("keydown")
 
     ## Event handlers ##
     
@@ -233,12 +259,12 @@ class Round
     
     letterHandler: (keycode)->
         char = 'abcdefghijklmnopqrstuvwxyz'.charAt(keycode - 65)
-        console.log('char:\t', char)
         @rack.typeTile(char)
 
 class Game
     constructor: ()->
         @getNewRound()
+        @bindEvents()
 
     getNewRound: ()->
         if @round
@@ -246,10 +272,19 @@ class Game
             delete @round
         @round = new Round()
 
+    stopRound: ()->
+        @round.ansTable.revealAll()
+
+    bindEvents: ()->
+        $("[data-value='newround']").click ()=>
+            @getNewRound()
+        $("[data-value='stopround']").click ()=>
+            @stopRound()
+
 ###
 Ready to start! :D
 ###
     
 $(document).ready ()->
 
-    game = new Game()
+    window.game = new Game()

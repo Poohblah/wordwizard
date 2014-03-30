@@ -1,29 +1,58 @@
+@serifFont: Palatino, serif;
+@sansFont: Arial, sans-serif;
+@tileFont: @sansFont;
+@buttonBg: darkslateblue;
+@buttonFg: white;
+@buttonBorder: brown;
+@tileBg: ivory;
+@tileFg: brown;
+@tileBorder: brown;
+@tileCorrectHighlight: lightgreen;
+@tileWrongHighlight: purple;
+
 body {
     margin: 0;
+    font-family: @serifFont;
     > div {
         padding: .5em;
     }
 }
 
+.button {
+    display: inline-block;
+    min-width: 5em;
+    min-height: 1.5em;
+    line-height: 1.5em;
+    text-align: center;
+    background: @buttonBg;
+    color: @buttonFg;
+    border: 1px solid @buttonBorder;
+    border-radius: 2px;
+    cursor: pointer;
+    & + .button {
+        margin-left: .5em;
+    }
+}
+
 .tile {
     display: inline-block;
-    border: 2px solid brown;
+    border: 2px solid @tileBorder;
     border-radius: 2px;
-    background-color: ivory;
-    color: brown;
+    background-color: @tileBg;
+    color: @tileFg;
     width: 1.5em;
     height: 1.5em;
     text-align: center;
     line-height: 1.5em;
     margin: .125em;
     font-size: 24px;
-    font-family: Arial, sans-serif;
+    font-family: @tileFont;
     text-transform: uppercase;
 }
 
 #title {
-    background-color: darkslateblue;
-    color: white;
+    background-color: @buttonBg;
+    color: @buttonFg;
 }
 
 #game {
@@ -32,44 +61,55 @@ body {
         display: inline-block;
         float: left;
         width: 30em;
+
+        #buttons {
+            margin: .5em;
+        }
+
+        #source-tiles {
+    	> .tile {
+            }
+        }
+        
+        #dest-tiles {
+    	> .tile {
+            }
+        }
+    
+        .ghost-tile {
+            width: 0;
+            visibility: hidden;
+            > .tile {
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+
+        #status {
+            margin: .5em;
+        }
     }
 
     #right {
         display: inline-block;
         float: left;
-    }
 
-    #source-tiles {
-	> .tile {
-        }
-    }
-    
-    #dest-tiles {
-	> .tile {
-        }
-    }
-
-    .ghost-tile {
-        width: 0;
-        visibility: hidden;
-        > .tile {
-            margin-left: 0;
-            margin-right: 0;
-        }
-    }
-
-    #answers-table {
-        .answer-col {
-            vertical-align: top;
-            padding-right: 1.5em;
-        }
-        .marked {
-            background-color: lightgreen;
-        }
-        .tile {
-            font-size: 10px;
-            border-width: 1px; 
-            border-radius: 1px;
+        #answers-table {
+            .answer-col {
+                vertical-align: top;
+                padding-right: 1.5em;
+            }
+            .marked {
+                background-color: @tileCorrectHighlight;
+            }
+            .revealed {
+                background-color: @tileWrongHighlight;
+            }
+            .tile {
+                font-size: 10px;
+                border-width: 1px; 
+                border-radius: 1px;
+            }
         }
     }
 }
