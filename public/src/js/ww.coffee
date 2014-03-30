@@ -1,5 +1,7 @@
 # texttwist redux
 
+root = exports ? this
+
 ##############################
 ## General helper functions ##
 ##############################
@@ -193,13 +195,27 @@ class Round
         @rack.clearAllTiles()
         @status('round over.')
 
+    genericGet: (endpoint, resultkey, cachename, cachekey)->
+        cache = root.wordwizard[cachename]
+        if not cache[@config.locale]
+            cache[@config.locale] = {}
+        item = cache[@config.locale][cachekey]
+        if item then return $().promise().then ()=>
+            return item
+        $.get(endpoint).then (res)=>
+            item = res.payload[resultkey]
+            cache[@config.locale][cachekey] = item
+            return item
+
     getDict: ()->
-        $.get('/api/getDict').then (res)=>
-            @dict = res.payload.dict
+        @genericGet('/api/getDict', 'dict', 'dicts', @config.dictionary)
+        .then (dict)=>
+            @dict = dict
 
     getTileBag: ()->
-        $.get('/api/getTileBag') .then (res)=>
-            @tilebag = res.payload.tilebag
+        @genericGet('/api/getTileBag', 'tilebag', 'tilebags', @config.tilebag)
+        .then (tb)=>
+            @tilebag = tb
 
     getValidRack: ()->
         @wordlist = []
@@ -272,6 +288,10 @@ class Round
 
 class Game
     constructor: ()->
+        @dicts = {}
+        @tilebags = {}
+
+    startGame: ()->
         @getNewRound()
         @bindEvents()
 
@@ -301,4 +321,5 @@ Ready to start! :D
     
 $(document).ready ()->
 
-    window.game = new Game()
+    root.wordwizard = new Game()
+    root.wordwizard.startGame()
